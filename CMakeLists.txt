@@ -13,6 +13,9 @@ qt_add_executable(train_ticket_system
     mainwindow.ui
     dialog.h dialog.cpp dialog.ui
     datastore.h datastore.cpp
+    src/models/train.h
+    src/services/TrainService.h
+    src/services/TrainService.cpp
 )
 
 target_link_libraries(train_ticket_system
