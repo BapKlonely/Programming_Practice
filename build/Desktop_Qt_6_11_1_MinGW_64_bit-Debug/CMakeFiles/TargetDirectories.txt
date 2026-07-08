@@ -1,0 +1,3 @@
+F:/Code/coding_exercise/mysrc/build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug/CMakeFiles/ticket_test.dir
+F:/Code/coding_exercise/mysrc/build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug/CMakeFiles/edit_cache.dir
+F:/Code/coding_exercise/mysrc/build/Desktop_Qt_6_11_1_MinGW_64_bit-Debug/CMakeFiles/rebuild_cache.dir
