@@ -1,5 +1,5 @@
-#ifndef TRAIN_SERVICE_HPP
-#define TRAIN_SERVICE_HPP
+#ifndef TRAIN_SERVICE_H
+#define TRAIN_SERVICE_H
 #include "struct/train.h"
 #include <QString>
 #include <QList>
