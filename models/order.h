@@ -1,49 +1,42 @@
 #pragma once
 
-/**
- * @file order.h
- * @brief 订单相关的数据结构（成员 E 主维护）
- *
- * 【BookResult 是什么？】
- * 订票接口的返回值。成功时 ok=true 并带 orderNo；
- * 失败时 ok=false 并带中文 message，UI 直接弹窗显示即可。
- */
+/*
+头文件使用说明：
+描述了订单相关的类/结构体，包括订单信息、下单反馈、车辆座次信息。
+*/
 
 #include <QDate>
 #include <QString>
 
-/** @brief 一条购票订单，对应表 orders */
-struct Order
+struct Order //订单信息
 {
     int id = 0;
-    QString orderNo;        ///< 业务订单号，如 ORD20260707001
+    QString orderNo;        //订单号，应当唯一
     int trainId = 0;
-    int sellerId = 0;       ///< 哪位售票员卖的票，来自 User.id
+    int sellerId = 0;       //执行售出操作的售票员ID
     QString passengerName;
     QString idCard;
-    QString seatType;
+    QString seatType;       //座位类型
     int ticketCount = 1;
-    double price = 0;       ///< 实付总价
-    QString status;         ///< "paid" 已支付 / "refunded" 已退票
-    QString createdAt;
+    double price = 0;       //实付总价
+    QString status;         //订单状态：已支付/已退票
+    QString createdAt;      //下单时间
 
-    // 以下字段方便 UI 展示，可从 trains 表 JOIN 查询得到
+    // 为前端UI设计的展示变量，可以通过查询数据库赋值
     QString trainNo;
     QString fromStation;
     QString toStation;
     QDate travelDate;
 };
 
-/** @brief bookTicket() 的返回结果 */
-struct BookResult
+struct BookResult //用户下单后返回的下单结果
 {
     bool ok = false;
-    QString orderNo;
-    QString message;  ///< 失败时的中文原因，如 "余票不足"
+    QString orderNo;    //返回用户订单号
+    QString message;    //若下单失败，返回失败原因
 };
 
-/** @brief 某车次售票统计（P1/P2 统计页用，先定义好结构） */
-struct TrainSalesStats
+struct TrainSalesStats //某车次列车座次信息
 {
     int trainId = 0;
     QString trainNo;
