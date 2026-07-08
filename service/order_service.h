@@ -1,5 +1,5 @@
-#ifndef ORDER_SERVICE_HPP
-#define ORDER_SERVICE_HPP
+#ifndef ORDER_SERVICE_H
+#define ORDER_SERVICE_H
 #include <QString>
 #include <QList>
 #include "struct/order.h"
@@ -10,7 +10,7 @@ class order_service
 {
     private:
     QList<order_information> order_list;//订单列表
-    QString order_file_path;//订单文件路径
+    QString order_file_path;//订单文件路径********
     train_service* t_service;//依赖接口
     user_service* u_service;//依赖用户服务
     QString error;//错误信息
