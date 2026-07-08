@@ -1,5 +1,5 @@
-#ifndef ORDER_HPP
-#define ORDER_HPP
+#ifndef ORDER_H
+#define ORDER_H
 #include <QString>
 using namespace std;
 /**********************/
@@ -20,5 +20,6 @@ struct order_information
     double price;//总价
     QString state;//订单状态
     QString order_time;//下单时间
+    //显示订单的所有信息
 };
 #endif
