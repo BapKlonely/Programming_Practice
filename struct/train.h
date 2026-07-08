@@ -1,5 +1,5 @@
-#ifndef TRAININ_FOTMATION_HPP
-#define TRAININ_FOTMATION_HPP
+#ifndef TRAIN_H
+#define TRAIN_H
 #include <QString>
 using namespace std;
 /******************************/
@@ -20,5 +20,6 @@ struct train_information
     seat_information soft_seat;//软座
     seat_information hard_sleep;//硬卧
     seat_information soft_sleep;//软卧
+    //显示车次的所有信息
 };
 #endif
