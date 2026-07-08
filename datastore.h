@@ -7,7 +7,7 @@
 #include <QDir>
 
 
-class Train{
+struct Train{
     QString trainId;
     QString start;
     QString destination;
@@ -21,7 +21,7 @@ class Train{
     double price;
 };
 
-class Order{
+struct Order{
     QString id;
     QString username;
     QString phone;
@@ -30,7 +30,7 @@ class Order{
     int count;
 };
 
-class User{
+struct User{
     std::vector<Order> orders;
     QString username;
     QString password;
@@ -56,7 +56,6 @@ private:
     static void OrderToJson();
     static void TrainToJson();
     static void UserToJson();
-    QString datafile(QString path);
 };
 
 #endif // DATASTORE_H

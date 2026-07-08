@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "datastore.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -14,10 +15,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(DataStore &store, QWidget *parent = nullptr);
     ~MainWindow() override;
 
 private:
     Ui::MainWindow *ui;
+    DataStore &m_store;
 };
 #endif // MAINWINDOW_H

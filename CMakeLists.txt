@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(train_ticket_system LANGUAGES CXX)
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Sql)
 
 qt_standard_project_setup()
 
@@ -13,15 +13,16 @@ qt_add_executable(train_ticket_system
     mainwindow.ui
     dialog.h dialog.cpp dialog.ui
     datastore.h datastore.cpp
-    src/models/train.h
-    src/services/TrainService.h
-    src/services/TrainService.cpp
+    train.h
+    TrainService.h
+    TrainService.cpp
 )
 
 target_link_libraries(train_ticket_system
     PRIVATE
         Qt::Core
         Qt::Widgets
+        Qt::Sql
 )
 
 install(TARGETS train_ticket_system

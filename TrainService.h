@@ -1,16 +1,35 @@
-#include "TrainService.h"
+#ifndef TRAINSERVICE_H
+#define TRAINSERVICE_H
 
-TrainService::TrainService(QSqlDatabase &db) : m_db(db) {}
+#include <QString>
+#include <QVector>
+#include <QDate>
+#include <optional>
+#include <QSqlDatabase>
+#include "train.h"
 
-bool TrainService::addTrain(const Train&, QString*) { return true; }
-bool TrainService::updateTrain(const Train&, QString*) { return true; }
-bool TrainService::deleteTrain(int, QString*) { return true; }
-bool TrainService::setTrainStatus(int, const QString&, QString*) { return true; }
-bool TrainService::configureSeats(int, const QString&, int, QString*) { return true; }
-bool TrainService::isTrainBookable(int) { return true; }
+class TrainService {
+public:
+    explicit TrainService(QSqlDatabase &db);
 
-QVector<Train> TrainService::searchTrains(const QString&, const QString&, const QDate&) { return {}; }
-QVector<TrainTicketInfo> TrainService::queryRemainingTickets(const QString&, const QString&, const QDate&) { return {}; }
+    // 管理员接口
+    bool addTrain(const Train &train, QString *err);
+    bool updateTrain(const Train &train, QString *err);
+    bool deleteTrain(int trainId, QString *err);          
+    bool setTrainStatus(int trainId, const QString &status, QString *err);
+    bool configureSeats(int trainId, const QString &seatType, int total, QString *err);
 
-int TrainService::getRemainingSeats(int, const QString&) { return 100; } // 默认有100张票供E联调
-std::optional<Train> TrainService::getTrainById(int) { return std::nullopt; }
+    // 查询接口
+    QVector<Train> searchTrains(const QString &trainNo, const QString &from, const QDate &date);
+    QVector<TrainTicketInfo> queryRemainingTickets(const QString &from, const QString &to, const QDate &date);
+
+    // 内部校验接口
+    int getRemainingSeats(int trainId, const QString &seatType);
+    bool isTrainBookable(int trainId);   
+    std::optional<Train> getTrainById(int trainId);
+
+private:
+    QSqlDatabase &m_db; 
+};
+
+#endif // TRAINSERVICE_H

@@ -1,8 +1,8 @@
 #include "dialog.h"
 #include "ui_dialog.h"
 
-Dialog::Dialog(QWidget *parent)
-    : QDialog(parent)
+Dialog::Dialog(DataStore &store, QWidget *parent) 
+    : QDialog(parent), m_store(store)
     , ui(new Ui::Dialog)
 {
     ui->setupUi(this);
