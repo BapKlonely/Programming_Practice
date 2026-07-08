@@ -1,16 +1,5 @@
-# 成员 E 独立工作区（mysrc）
-
-本目录与 [`../src/`](../src/) 中的参考模板 **分离**：
-
-| 目录 | 用途 |
-|------|------|
-| `src/` | 小组参考模板（JSON DataStore + Qt 界面原型，成员 B 参考） |
-| `mysrc/` | 成员 E 的实现：SQLite + Service 分层（按分工计划） |
-
-当前进度：**第 1～2 步**（工程骨架 + Database 建表与种子数据）。第 3 步再实现 `TicketService.cpp` 等。
-
-**给其他成员的详细使用文档** → [`docs/Database模块使用说明.md`](../docs/Database模块使用说明.md)  
-（含 SQLite/Qt 入门、表结构、各成员代码示例、联调约定）
+# 本分支当前主要内容
+完成了数据库的建立和初始测试数据的加载
 
 ## 目录结构
 
@@ -23,12 +12,16 @@ mysrc/
 └── tests/              # 控制台测试 database_manual.cpp
 ```
 
+## 如何使用
+1. 先阅读database模块使用说明，掌握如何使用QT内置的SQL驱动实现数据的增删查改；
+2. 阅读models和services两个文件夹对users和trains的基本变量、方法的定义，确保每个人推进项目的过程中名称统一。
+
 ## 如何打开与编译
 
-1. 用 **Qt Creator** 打开 `mysrc/CMakeLists.txt`（不要打开 `src/` 里的，除非要看参考 UI）
+1. 用 **Qt Creator** 打开 `CMakeLists.txt`
 2. 配置 Kit（MinGW 64-bit + Qt 6.x）
 3. 构建并运行目标 **`ticket_test`**
-4. 成功后会在 `build/.../data/test_ticket.db` 生成数据库
+4. 成功后会在 `build/.../data/test_ticket.db` 生成数据库，有该文件说明本分支程序跑通
 
 ## 默认测试账号（种子数据）
 
@@ -39,7 +32,7 @@ mysrc/
 
 ## 超售测试车次
 
-种子数据中的 **T999**（北京→上海）仅 **1** 张二等座，供第 3 步 `TicketService` 测试超售拦截。
+种子数据中的 **T999**（北京→上海）仅 **1** 张二等座，供后续测试超售拦截。
 
 ## 与全组最终合并
 
