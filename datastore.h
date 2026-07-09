@@ -10,7 +10,7 @@ public:
     explicit DataStore(const QString &dbName = "train_system.db");
     ~DataStore();
 
-    // 🌟 核心接口：允许 MainWindow 和 TrainService 获取这个 SQLite 连接
+    // 核心接口：允许 MainWindow 和 TrainService 获取这个 SQLite 连接
     QSqlDatabase getDatabase() const;
 
 private:

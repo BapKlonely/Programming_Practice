@@ -5,15 +5,15 @@
 
 DataStore::DataStore(const QString &dbName) {
     qDebug() << "========================================";
-    qDebug() << "🚀 SQLite 关系型数据库大管家启动...";
+    qDebug() << "SQLite 关系型数据库启动...";
 
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(dbName);
 
     if (!m_db.open()) {
-        qDebug() << "❌ 致命错误：数据库打开失败！" << m_db.lastError().text();
+        qDebug() << "错误：数据库打开失败！" << m_db.lastError().text();
     } else {
-        qDebug() << "📂 成功：数据库已连接，路径:" << dbName;
+        qDebug() << "成功：数据库已连接，路径:" << dbName;
         initTables();
         insertMockData();
     }
@@ -30,7 +30,7 @@ QSqlDatabase DataStore::getDatabase() const {
     return m_db;
 }
 
-// 🌟 核心重构：建立符合全新 train.h 规范的三张关联表
+//核心重构：建立符合全新 train.h 规范的三张关联表
 void DataStore::initTables() {
     QSqlQuery query(m_db);
     
@@ -63,7 +63,7 @@ void DataStore::initTables() {
                "remaining_seats INTEGER"
                ");");
     
-    qDebug() << "✅ 关系型数据库三表 [stations, trains, seat_inventory] 准备就绪";
+    qDebug() << "关系型数据库三表 [stations, trains, seat_inventory] 准备就绪";
 }
 
 // 自动注入满足多表关联的测试假数据
@@ -95,5 +95,5 @@ void DataStore::insertMockData() {
     query.exec();
 
     m_db.commit(); // 提交事务
-    qDebug() << "🎁 规范化测试数据集（多席别关联）已成功注入 SQLite！";
+    qDebug() << "规范化测试数据集已成功注入 SQLite！";
 }

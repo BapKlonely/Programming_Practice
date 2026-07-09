@@ -17,7 +17,7 @@ QVector<Train> TrainService::searchTrains(const QString &trainNo, const QString 
     if (!m_db.isOpen()) return result;
 
     QSqlQuery query(m_db);
-    // 🌟 多表联查：通过 from_station_id 和 to_station_id 关联 stations 表获取真实站名
+    //多表联查：通过 from_station_id 和 to_station_id 关联 stations 表获取真实站名
     query.prepare("SELECT t.*, s1.name AS from_name, s2.name AS to_name "
                   "FROM trains t "
                   "JOIN stations s1 ON t.from_station_id = s1.id "
@@ -36,17 +36,17 @@ QVector<Train> TrainService::searchTrains(const QString &trainNo, const QString 
     if (query.exec()) {
         while (query.next()) {
             Train t;
-            // 📝 严格映射到全新定义的 Train 结构体字段
+            //严格映射到全新定义的 Train 结构体字段
             t.id            = query.value("id").toInt();
             t.trainNo       = query.value("train_no").toString(); 
             t.fromStationId = query.value("from_station_id").toInt();
             t.toStationId   = query.value("to_station_id").toInt();
-            t.fromStation   = query.value("from_name").toString();   // 👈 对齐新字段
-            t.toStation     = query.value("to_name").toString();     // 👈 对齐新字段
-            t.departTime    = query.value("depart_time").toString(); // 👈 补齐新字段
-            t.arriveTime    = query.value("arrive_time").toString(); // 👈 补齐新字段
-            t.travelDate    = query.value("travel_date").toDate();   // 👈 补齐新字段
-            t.basePrice     = query.value("base_price").toDouble();  // 👈 补齐新字段
+            t.fromStation   = query.value("from_name").toString();  
+            t.toStation     = query.value("to_name").toString();     
+            t.departTime    = query.value("depart_time").toString();
+            t.arriveTime    = query.value("arrive_time").toString(); 
+            t.travelDate    = query.value("travel_date").toDate();   
+            t.basePrice     = query.value("base_price").toDouble();  
             t.status        = query.value("status").toString();
             
             result.append(t);
@@ -56,7 +56,7 @@ QVector<Train> TrainService::searchTrains(const QString &trainNo, const QString 
 }
 
 /**
- * @brief 余票精确查询 (多表联合打散，车次 + 席别组合出 TrainTicketInfo)
+ * @brief 余票精确查询 (多表联合，车次 + 席别组合出 TrainTicketInfo)
  */
 QVector<TrainTicketInfo> TrainService::queryRemainingTickets(const QString &from, const QString &to, const QDate &date) {
     QString cleanFrom = from.trimmed();
@@ -68,7 +68,7 @@ QVector<TrainTicketInfo> TrainService::queryRemainingTickets(const QString &from
     }
 
     QSqlQuery query(m_db);
-    // 🌟 核心精髓：将车次主表与席别库存表 JOIN，拉出前台表格需要的“车次+席别”大宽表
+    //将车次主表与席别库存表 JOIN，拉出前台表格需要的“车次+席别”大宽表
     query.prepare("SELECT t.id AS t_id, t.train_no, s1.name AS from_name, s2.name AS to_name, "
                   "t.travel_date, t.depart_time, t.arrive_time, i.seat_type, i.price, i.total_seats, i.remaining_seats "
                   "FROM trains t "
@@ -84,18 +84,18 @@ QVector<TrainTicketInfo> TrainService::queryRemainingTickets(const QString &from
     if (query.exec()) {
         while (query.next()) {
             TrainTicketInfo info;
-            // 📝 严格映射到全新定义的 TrainTicketInfo 结构体字段
-            info.trainId        = query.value("t_id").toInt();         // 👈 对齐新规范
+            // 严格映射到全新定义的 TrainTicketInfo 结构体字段
+            info.trainId        = query.value("t_id").toInt();        
             info.trainNo        = query.value("train_no").toString();
             info.fromStation    = query.value("from_name").toString();
             info.toStation      = query.value("to_name").toString();
-            info.travelDate     = query.value("travel_date").toDate(); // 👈 字段名改动
+            info.travelDate     = query.value("travel_date").toDate();
             info.departTime     = query.value("depart_time").toString();
             info.arriveTime     = query.value("arrive_time").toString();
             info.seatType       = query.value("seat_type").toString();
             info.price          = query.value("price").toDouble();
             info.totalSeats     = query.value("total_seats").toInt();
-            info.remainingSeats = query.value("remaining_seats").toInt(); // 👈 字段名改动
+            info.remainingSeats = query.value("remaining_seats").toInt();
             
             result.append(info);
         }
