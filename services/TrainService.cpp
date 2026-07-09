@@ -23,7 +23,7 @@ QVector<Train> TrainService::searchTrains(const QString &trainNo, const QString 
     const QString cleanFrom = from.trimmed();
 
     QVector<Train> result;
-    //底层数据库若未正常打开，立即熔断返回空容器，坚决防止后续 SQL 执行引发程序崩溃
+    //底层数据库若未正常打开，立即终止，返回空容器，坚决防止后续 SQL 执行引发程序崩溃
     if (!m_db.isOpen()) {
         return result;
     }
@@ -294,5 +294,5 @@ std::optional<Train> TrainService::getTrainById(int trainId)
         t.status = query.value(QStringLiteral("status")).toString();
         return t; //查到时，将Train对象包裹进optional中返回
     }
-    return std::nullopt; //没查到时，安全返回空标识，彻底终结了以往返回nullptr导致的空指针系统崩溃顽疾
+    return std::nullopt; //没查到时，安全返回空标识，彻底终结了以往返回nullptr导致的空指针系统崩溃问题
 }
