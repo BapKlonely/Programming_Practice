@@ -13,7 +13,7 @@ struct Order //订单信息
     int id = 0;
     QString orderNo;        //订单号，应当唯一
     int trainId = 0;
-    int sellerId = 0;       //执行售出操作的售票员ID
+    int operatorId = 0;     // 执行订票/退票操作的管理员 users.id（库字段名为 seller_id）
     QString passengerName;
     QString idCard;
     QString seatType;       //座位类型

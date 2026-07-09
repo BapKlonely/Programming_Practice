@@ -1,14 +1,4 @@
-/**
- * @file database.cpp
- * @brief Database 类的实现：建表 SQL + 种子数据
- *
- * 【阅读顺序建议】
- * 1. initialize()     — 入口：打开文件 → 建表 → 种子数据
- * 2. createTables()   — 所有 CREATE TABLE 语句
- * 3. seedIfEmpty()    — 第一次运行时的 INSERT 演示数据
- */
-
-#include "database.h"
+#include "core/database.h"
 
 #include <QDate>
 #include <QDateTime>
@@ -18,27 +8,16 @@
 #include <QSqlQuery>
 #include <QUuid>
 
-// ---------------------------------------------------------------------------
-// 单例
-// ---------------------------------------------------------------------------
-
 Database &Database::instance()
 {
-    // C++11 起，函数内 static 变量只会初始化一次，线程安全
     static Database db;
     return db;
 }
 
-// ---------------------------------------------------------------------------
-// 公开接口
-// ---------------------------------------------------------------------------
-
 bool Database::initialize(const QString &dbFilePath)
 {
     m_lastError.clear();
-
-    // 若之前已经打开过，先关闭（方便测试程序多次调用）
-    if (m_open) {
+    if (m_open) {//多测清空
         QSqlDatabase::database(m_connectionName).close();
         QSqlDatabase::removeDatabase(m_connectionName);
         m_open = false;
@@ -132,14 +111,14 @@ bool Database::createTables()
             username      TEXT    NOT NULL UNIQUE,
             password_hash TEXT    NOT NULL,
             salt          TEXT    NOT NULL DEFAULT '',
-            role          TEXT    NOT NULL CHECK(role IN ('admin', 'seller')),
+            role          TEXT    NOT NULL CHECK(role IN ('admin')),
             enabled       INTEGER NOT NULL DEFAULT 1,
             created_at    TEXT    NOT NULL
         )
     )SQL";
     /*SQL解析：
         id:自增主键，代表用户编号;username:非空不可重复用户名
-        password_hash:非空密码的哈希值;role:在售票员、管理员中选择
+        password_hash:非空密码的哈希值;role:固定为 admin（管理员，兼账号管理与售票）
         salt:盐值是一串随机生成的字符串,将salt文本与密码融合后再哈希，可以防止黑客暴力尝试常规密码破解
         enabled:账号是否启用 created_at:创建时间
     */
@@ -271,7 +250,7 @@ bool Database::seedIfEmpty()
     /**
      * 【关于占位密码】
      * 成员 C 后续会用 SHA256+salt 存真正哈希。
-     * 这里 password_hash 暂时存明文 "admin123" / "seller123" 方便联调前测试。
+     * 这里 password_hash 暂时存明文 "admin123" 方便联调前测试。
      * 正式版本请由 AuthService 替换。
      */
     struct UserSeed {
@@ -280,8 +259,7 @@ bool Database::seedIfEmpty()
         const char *role;
     };
     const UserSeed users[] = {
-        {"admin",  "admin123",  "admin"},
-        {"seller", "seller123", "seller"},
+        {"admin", "admin123", "admin"},
     };
 
     for (const UserSeed &u : users) {//循环插入所有已知users的账号信息
@@ -336,7 +314,7 @@ bool Database::seedIfEmpty()
         {"D2201", 4, 5, "07:15", "15:42", dayAfter, 356.0,  "二等座", 100},
         {"K88",   3, 1, "18:45", "10:30", dayAfter, 426.5,  "硬卧",   160},
         {"Z19",   1, 6, "20:40", "08:31", day3,     415.0,  "软卧",   60},
-        {"T999",  1, 2, "14:00", "18:00", tomorrow, 100.0,  "二等座", 1},  // 仅 1 张票，测超售
+        {"T999",  1, 2, "14:00", "18:00", tomorrow, 100.0,  "二等座", 1},
     };//结构体存储车次信息
 
     for (const TrainSeed &t : trains) {
@@ -354,10 +332,7 @@ bool Database::seedIfEmpty()
         if (!query.exec()) {
             return fail(QStringLiteral("插入车次失败：%1").arg(query.lastError().text()));
         }
-
-        // lastInsertId() 返回刚插入行的自增 id
-        const int trainId = query.lastInsertId().toInt();
-
+        const int trainId = query.lastInsertId().toInt();//返回刚插入行的id
         query.prepare(QStringLiteral(
             "INSERT INTO seat_inventory (train_id, seat_type, total, sold) VALUES (?, ?, ?, 0)"));
         query.addBindValue(trainId);
@@ -367,6 +342,5 @@ bool Database::seedIfEmpty()
             return fail(QStringLiteral("插入库存失败：%1").arg(query.lastError().text()));
         }
     }
-
     return true;
 }
