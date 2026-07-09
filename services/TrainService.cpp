@@ -1,7 +1,5 @@
 #include "services/TrainService.h"
-
 #include "core/database.h"
-
 #include <QSqlError>
 #include <QSqlQuery>
 
@@ -189,7 +187,6 @@ bool TrainService::setTrainStatus(int trainId, const QString &status, QString *e
 bool TrainService::configureSeats(int trainId, const QString &seatType, int total, QString *err)
 {
     QSqlQuery query(m_db.connection());
-    // 与成员 D 语义一致：配置后余票等于总量，即 sold 归零
     query.prepare(QStringLiteral(
         "UPDATE seat_inventory SET total = :total, sold = 0 "
         "WHERE train_id = :id AND seat_type = :type"));
