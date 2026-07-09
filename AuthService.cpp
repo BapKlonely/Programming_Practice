@@ -1,5 +1,5 @@
 #include "AuthService.h"
-#include "database.h"
+#include "core/database.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -13,18 +13,15 @@ static QString makeSalt()
     const int n=static_cast<int>(sizeof(pool)-1);
     QString s;
     s.reserve(16);
-    for(int i=0;i<16;++i)
-        s.append(pool[QRandomGenerator::global()->bounded(n)]);
+    for(int i=0;i<16;++i) s.append(pool[QRandomGenerator::global()->bounded(n)]);
     return s;
 }
-
 static QString sha256(const QString &plain,const QString &salt)
 {
-    QByteArray input=(plain + salt).toUtf8();
+    QByteArray input=(plain+salt).toUtf8();
     QByteArray hash=QCryptographicHash::hash(input,QCryptographicHash::Sha256);
     return QString::fromLatin1(hash.toHex());
 }
-
 static User rowToUser(const QSqlQuery &q)
 {
     User u;
@@ -37,46 +34,37 @@ static User rowToUser(const QSqlQuery &q)
     u.createdAt=q.value(6).toString();
     return u;
 }
-
-AuthService::AuthService(Database &db)
-    : m_db(db)
+AuthService::AuthService(Database &db):m_db(db);
 {
     QSqlQuery q(m_db.connection());
     q.exec(QStringLiteral("SELECT COUNT(*) FROM users"));
-    if(q.next() && q.value(0).toInt()==0)
+    if(q.next()&&q.value(0).toInt()==0)
         createDefaultUsers();
 }
-
 AuthService::~AuthService()=default;
-
 QString AuthService::getError() const
 {
     return m_error;
 }
-
-// 判断用户类型
+//判断用户类型
 bool AuthService::isAdmin(const User &user)
 {
     return user.role=="admin";
 }
-
 bool AuthService::isConsumer(const User &user)
 {
     return user.role=="consumer";
 }
-
 bool AuthService::isGuest(const User &user)
 {
     return user.role.isEmpty()||user.role=="guest";
 }
-
-// 默认用户
+//创建默认用户
 void AuthService::createDefaultUsers()
 {
     QSqlDatabase sqlDb=m_db.connection();
     QString now=QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd hh:mm:ss"));
     QSqlQuery q(sqlDb);
-
     QString s1=makeSalt();
     q.prepare(QStringLiteral(
         "INSERT INTO users (username,password_hash,salt,role,enabled,created_at) "
@@ -86,7 +74,6 @@ void AuthService::createDefaultUsers()
     q.addBindValue(s1);
     q.addBindValue(now);
     q.exec();
-
     QString s2=makeSalt();
     q.prepare(QStringLiteral(
         "INSERT INTO users (username,password_hash,salt,role,enabled,created_at) "
@@ -97,8 +84,7 @@ void AuthService::createDefaultUsers()
     q.addBindValue(now);
     q.exec();
 }
-
-// 会话
+//登录
 void AuthService::loginAsGuest()
 {
     m_currentUser=User{};
@@ -106,7 +92,6 @@ void AuthService::loginAsGuest()
     m_loggedIn=true;
     m_error.clear();
 }
-
 std::optional<User> AuthService::login(const QString& username,const QString& password)
 {
     QSqlDatabase sqlDb=m_db.connection();
@@ -115,7 +100,7 @@ std::optional<User> AuthService::login(const QString& username,const QString& pa
         "SELECT id,username,password_hash,salt,role,enabled,created_at "
         "FROM users WHERE username=?"));
     q.addBindValue(username);
-    if(!q.exec() || !q.next())
+    if(!q.exec()||!q.next())
     {
         m_error=QStringLiteral("用户不存在");
         return std::nullopt;
@@ -136,87 +121,41 @@ std::optional<User> AuthService::login(const QString& username,const QString& pa
     m_error.clear();
     return u;
 }
-
+bool AuthService::isLoggedIn() const
+{
+    return m_loggedIn;
+}
+//登出
 void AuthService::logout()
 {
     m_currentUser=User{};
     m_loggedIn=false;
     m_error.clear();
 }
-
 const User* AuthService::getCurrentUser() const
 {
     return m_loggedIn? &m_currentUser:nullptr;
 }
-
-bool AuthService::isLoggedIn() const
-{
-    return m_loggedIn;
-}
-
 bool AuthService::isAdministrator() const
 {
-    return m_loggedIn && m_currentUser.role==QStringLiteral("admin");
+    return m_loggedIn&&m_currentUser.role==QStringLiteral("admin");
 }
-
-// 密码
-bool AuthService::changePassword(int userId,const QString& oldPwd,const QString& newPwd,QString* err)
-{
-    QSqlDatabase sqlDb=m_db.connection();
-    QSqlQuery q(sqlDb);
-
-    q.prepare(QStringLiteral(
-        "SELECT password_hash,salt FROM users WHERE id=?"));
-    q.addBindValue(userId);
-    if(!q.exec() || !q.next())
-    {
-        if(err) *err=QStringLiteral("用户不存在");
-        return false;
-    }
-
-    QString oldHash=q.value(0).toString();
-    QString oldSalt=q.value(1).toString();
-    if(oldHash!=sha256(oldPwd,oldSalt))
-    {
-        if(err) *err=QStringLiteral("原密码错误");
-        return false;
-    }
-
-    QString newSalt=makeSalt();
-    QString newHash=sha256(newPwd,newSalt);
-
-    q.prepare(QStringLiteral(
-        "UPDATE users SET password_hash=?,salt=? WHERE id=?"));
-    q.addBindValue(newHash);
-    q.addBindValue(newSalt);
-    q.addBindValue(userId);
-    if(!q.exec())
-    {
-        if(err) *err=q.lastError().text();
-        return false;
-    }
-    return true;
-}
-
-// consumer 管理
+//注册账号
 bool AuthService::createConsumer(const QString& username,const QString& password,QString* err)
 {
     QSqlDatabase sqlDb=m_db.connection();
-
     QSqlQuery ck(sqlDb);
     ck.prepare(QStringLiteral("SELECT COUNT(*) FROM users WHERE username=?"));
     ck.addBindValue(username);
     ck.exec();
-    if(ck.next() && ck.value(0).toInt()>0)
+    if(ck.next()&&ck.value(0).toInt()>0)
     {
         if(err) *err=QStringLiteral("用户名已存在");
         return false;
     }
-
     QString salt=makeSalt();
     QString hash=sha256(password,salt);
     QString now=QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd hh:mm:ss"));
-
     QSqlQuery q(sqlDb);
     q.prepare(QStringLiteral(
         "INSERT INTO users (username,password_hash,salt,role,enabled,created_at) "
@@ -232,8 +171,7 @@ bool AuthService::createConsumer(const QString& username,const QString& password
     }
     return true;
 }
-
-// 查询
+//查询
 const User* AuthService::getUserByUsername(const QString& username) const
 {
     QSqlDatabase sqlDb=m_db.connection();
@@ -242,11 +180,45 @@ const User* AuthService::getUserByUsername(const QString& username) const
         "SELECT id,username,password_hash,salt,role,enabled,created_at "
         "FROM users WHERE username=?"));
     q.addBindValue(username);
-    if(q.exec() && q.next())
+    if(q.exec()&&q.next())
     {
         static User u;
         u=rowToUser(q);
         return &u;
     }
     return nullptr;
+}
+//修改密码
+bool AuthService::changePassword(int userId,const QString& oldPwd,const QString& newPwd,QString* err)
+{
+    QSqlDatabase sqlDb=m_db.connection();
+    QSqlQuery q(sqlDb);
+    q.prepare(QStringLiteral(
+        "SELECT password_hash,salt FROM users WHERE id=?"));
+    q.addBindValue(userId);
+    if(!q.exec()||!q.next())
+    {
+        if(err) *err=QStringLiteral("用户不存在");
+        return false;
+    }
+    QString oldHash=q.value(0).toString();
+    QString oldSalt=q.value(1).toString();
+    if(oldHash!=sha256(oldPwd,oldSalt))
+    {
+        if(err) *err=QStringLiteral("原密码错误");
+        return false;
+    }
+    QString newSalt=makeSalt();
+    QString newHash=sha256(newPwd,newSalt);
+    q.prepare(QStringLiteral(
+        "UPDATE users SET password_hash=?,salt=? WHERE id=?"));
+    q.addBindValue(newHash);
+    q.addBindValue(newSalt);
+    q.addBindValue(userId);
+    if(!q.exec())
+    {
+        if(err) *err=q.lastError().text();
+        return false;
+    }
+    return true;
 }
