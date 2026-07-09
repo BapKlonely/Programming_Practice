@@ -5,18 +5,15 @@
 
 DataStore::DataStore(const QString &dbName) {
     qDebug() << "========================================";
-    qDebug() << "🚀 SQLite 数据库大管家启动中...";
+    qDebug() << "🚀 SQLite 关系型数据库大管家启动...";
 
-    // 1. 初始化 SQLite 驱动并设置数据库文件名
     m_db = QSqlDatabase::addDatabase("QSQLITE");
     m_db.setDatabaseName(dbName);
 
-    // 2. 尝试打开数据库
     if (!m_db.open()) {
-        qDebug() << "❌ 致命错误：SQLite 数据库打开失败！" << m_db.lastError().text();
+        qDebug() << "❌ 致命错误：数据库打开失败！" << m_db.lastError().text();
     } else {
-        qDebug() << "📂 成功：SQLite 数据库已连接，物理路径:" << dbName;
-        // 3. 自动建表并装载数据
+        qDebug() << "📂 成功：数据库已连接，路径:" << dbName;
         initTables();
         insertMockData();
     }
@@ -33,66 +30,70 @@ QSqlDatabase DataStore::getDatabase() const {
     return m_db;
 }
 
-// 自动建立符合 train.h 规范的数据库表
+// 🌟 核心重构：建立符合全新 train.h 规范的三张关联表
 void DataStore::initTables() {
     QSqlQuery query(m_db);
     
-    // 建立 trains 表（字段完全对齐之前编写的 TrainService 查询语句）
-    QString createTrainTable = 
-        "CREATE TABLE IF NOT EXISTS trains ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "train_no TEXT, "
-        "start_station TEXT, "
-        "destination_station TEXT, "
-        "start_date TEXT, "
-        "seat_type TEXT, "
-        "rest_seats INTEGER, "
-        "status TEXT"
-        ");";
+    // 1. 创建 stations 表
+    query.exec("CREATE TABLE IF NOT EXISTS stations ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+               "name TEXT UNIQUE"
+               ");");
 
-    if (!query.exec(createTrainTable)) {
-        qDebug() << "❌ 创建 trains 表失败:" << query.lastError().text();
-    } else {
-        qDebug() << "✅ trains 数据表准备就绪";
-    }
+    // 2. 创建 trains 主表
+    query.exec("CREATE TABLE IF NOT EXISTS trains ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+               "train_no TEXT, "
+               "from_station_id INTEGER, "
+               "to_station_id INTEGER, "
+               "depart_time TEXT, "
+               "arrive_time TEXT, "
+               "travel_date TEXT, "
+               "base_price REAL, "
+               "status TEXT"
+               ");");
+
+    // 3. 创建 seat_inventory 库存表
+    query.exec("CREATE TABLE IF NOT EXISTS seat_inventory ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+               "train_id INTEGER, "
+               "seat_type TEXT, "
+               "price REAL, "
+               "total_seats INTEGER, "
+               "remaining_seats INTEGER"
+               ");");
+    
+    qDebug() << "✅ 关系型数据库三表 [stations, trains, seat_inventory] 准备就绪";
 }
 
-// 自动注入测试车次（如果表里没数据的话）
+// 自动注入满足多表关联的测试假数据
 void DataStore::insertMockData() {
     QSqlQuery query(m_db);
     
-    // 先检查表里是不是已经有数据了，防止每次启动重复插入
-    query.exec("SELECT COUNT(*) FROM trains");
-    if (query.next() && query.value(0).toInt() > 0) {
-        return; // 已有数据，直接返回
-    }
+    query.exec("SELECT COUNT(*) FROM stations");
+    if (query.next() && query.value(0).toInt() > 0) return; // 已有数据，跳过
 
-    // 插入初始测试车次（复用之前的假数据）
-    m_db.transaction(); // 开启事务加速插入
+    m_db.transaction(); // 开启事务
+
+    // 1. 插入站点
+    query.exec("INSERT INTO stations (name) VALUES ('北京'), ('上海'), ('成都'), ('西安')");
+
+    // 2. 插入车次主表记录 (G114, 北京(1) -> 上海(2))
+    query.exec("INSERT INTO trains (train_no, from_station_id, to_station_id, depart_time, arrive_time, travel_date, base_price, status) "
+               "VALUES ('G114', 1, 2, '08:00', '12:36', '2026-07-08', 550.0, 'running')");
+    int trainId = query.lastInsertId().toInt();
+
+    // 3. 插入该车次的多条席别库存 (满足一行车次对应多条席别记录)
+    query.prepare("INSERT INTO seat_inventory (train_id, seat_type, price, total_seats, remaining_seats) VALUES (?, ?, ?, ?, ?)");
     
-    query.prepare("INSERT INTO trains (train_no, start_station, destination_station, start_date, seat_type, rest_seats, status) "
-                  "VALUES (:no, :start, :dest, :date, :seat, :rest, :status)");
-
-    // 车次 1：G114 二等座
-    query.bindValue(":no", "G114");
-    query.bindValue(":start", "北京");
-    query.bindValue(":dest", "上海");
-    query.bindValue(":date", "2026-07-08");
-    query.bindValue(":seat", "二等座");
-    query.bindValue(":rest", 85);
-    query.bindValue(":status", "running");
+    // 二等座
+    query.addBindValue(trainId); query.addBindValue("二等座"); query.addBindValue(550.0); query.addBindValue(100); query.addBindValue(85);
     query.exec();
-
-    // 车次 2：G114 一等座
-    query.bindValue(":no", "G114");
-    query.bindValue(":start", "北京");
-    query.bindValue(":dest", "上海");
-    query.bindValue(":date", "2026-07-08");
-    query.bindValue(":seat", "一等座");
-    query.bindValue(":rest", 12);
-    query.bindValue(":status", "running");
+    
+    // 一等座
+    query.addBindValue(trainId); query.addBindValue("一等座"); query.addBindValue(930.0); query.addBindValue(30); query.addBindValue(12);
     query.exec();
 
     m_db.commit(); // 提交事务
-    qDebug() << "🎁 初始测试车次数据已成功注入 SQLite 数据库！";
+    qDebug() << "🎁 规范化测试数据集（多席别关联）已成功注入 SQLite！";
 }
