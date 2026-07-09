@@ -1,0 +1,11 @@
+[
+    {
+        "isAdmin": true,
+        "name": "admin",
+        "orders": [
+        ],
+        "password": "admin123",
+        "phone": "10086",
+        "username": "admin"
+    }
+]

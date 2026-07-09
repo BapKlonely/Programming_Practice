@@ -9,11 +9,9 @@
  */
 
 #include "models/train.h"
-
 #include <QDate>
 #include <QString>
 #include <QVector>
-
 #include <optional>
 
 class Database;
