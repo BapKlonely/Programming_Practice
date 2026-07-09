@@ -1,39 +1,38 @@
-#ifndef USER_SERVICE_H
-#define USER_SERVICE_H
-#include "struct/user.h"
+#include "models/user.h"
 #include <QString>
 #include <QList>
-/**************************/
-class user_service
+
+class UserService
 {
-    private:
-    /*******************************/
-    //文件操作//
-    QList<user_information> users;//内存中的用户表
-    QString user_file_path;//用户文件路径*********
-    bool loadfromfile();//加载文件
-    bool savetofile();//写入文件
-    /******************************/
-    void defaultuser();//创建初始管理员
-    QString error;
-    public:
-    user_service();//构造
-    ~user_service();//析构
-    QString geterror() const//获取最后的错误信息
+public:
+    UserService();
+    ~UserService();
+    //错误信息
+    QString getError() const
     {
-        return error;
+        return m_error;
     }
-    /******************************/
-    //判别用户类型//
-    void login_as_guest();//以游客身份登录
-    void get_current_user() const;//获取当前登录用户
-    bool is_logged() const;//是否已登录
-    bool is_adminstrator() const;//是否为管理员
-    /******************************/
-    bool newuser(const user_information& account, QString& error);//创建新用户（若成功，则返回TURE;反之，则返回FALSE）
-    user_information* checklogin(const QString& account, const QString& password, QString& error);//登录检测
-    bool changepassword(bool is_adminstrator, const QString& account, const QString& old_one, const QString& new_one, QString& error);//更换密码
-    bool setuserenabled(bool is_adminstrator, const QString& account, bool enabled, QString& error);//设置用户状态
-    QList<user_information> getlist(QString& error);//获取所有成员（管理员功能）
+    //会话管理
+    void loginAsGuest();//游客登录
+    User* login(const QString& username,const QString& password,QString& error);//账号密码登录
+    void logout();//登出
+    const User* getCurrentUser() const;//获取当前用户
+    bool isLoggedIn() const;//是否已登录
+    bool isAdministrator() const;//是否管理员（当前会话）
+    //判断用户类型
+    static bool isAdmin(const User& user);
+    static bool isConsumer(const User& user);
+    static bool isGuest(const User& user);
+    //用户管理
+    bool registerUser(const User& user,QString& error);//注册新用户
+    bool changePassword(bool isAdmin,const QString& username,const QString& oldPassword,const QString& newPassword,QString& error);//修改密码
+    bool setUserEnabled(bool isAdmin,const QString& username,bool enabled,QString& error);//启用/禁用用户
+    QList<User> getUserList(QString& error);//获取所有用户（管理员）
+    //查询
+    const User* getUserByUsername(const QString& username) const;//按用户名查找
+private:
+    User m_currentUser;//当前登录用户
+    QString m_error;//错误信息
+    bool m_loggedIn=false;//登录状态
+    void createDefaultUsers();//创建初始管理员和消费者
 };
-#endif
