@@ -111,7 +111,7 @@ bool Database::createTables()
             username      TEXT    NOT NULL UNIQUE,
             password_hash TEXT    NOT NULL,
             salt          TEXT    NOT NULL DEFAULT '',
-            role          TEXT    NOT NULL CHECK(role IN ('admin')),
+            role          TEXT    NOT NULL CHECK(role IN ('admin', 'consumer')),
             enabled       INTEGER NOT NULL DEFAULT 1,
             created_at    TEXT    NOT NULL
         )

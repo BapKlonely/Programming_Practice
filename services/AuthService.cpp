@@ -1,5 +1,5 @@
 #include "AuthService.h"
-#include "database.h"
+#include "core/database.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>

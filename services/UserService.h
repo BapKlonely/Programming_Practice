@@ -1,5 +1,5 @@
 #pragma once
-#include "struct/user.h"
+#include "models/user.h"
 #include <QString>
 #include <QVector>
 
