@@ -218,8 +218,6 @@ bool TrainService::setTrainStatus(int trainId, const QString &status, QString *e
 bool TrainService::configureSeats(int trainId, const QString &seatType, int total, QString *err)
 {
     QSqlQuery query(m_db.connection());
-    //业务核心语义对齐
-    //当管理员重新设定某趟车的某种席位总数时，意味着该席别进行全新发售，因此必须将已售出字段 `sold` 强行清 0，重建余票。
     query.prepare(QStringLiteral(
         "UPDATE seat_inventory SET total = :total, sold = 0 "
         "WHERE train_id = :id AND seat_type = :type"));
