@@ -1,4 +1,0 @@
-# ninja log v7
-10	3427	8050942966605862	CMakeFiles/ticket_test.dir/tests/database_manual.cpp.obj	d97cc1104d468def
-29	3481	8050942966786722	CMakeFiles/ticket_test.dir/core/database.cpp.obj	38e6ff71327554e2
-3481	3792	8050943001310802	ticket_test.exe	bf9a820633acb887

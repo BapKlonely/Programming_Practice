@@ -1,3 +1,0 @@
-F:/Code/coding_exercise/mysrc/build/CMakeFiles/ticket_test.dir
-F:/Code/coding_exercise/mysrc/build/CMakeFiles/edit_cache.dir
-F:/Code/coding_exercise/mysrc/build/CMakeFiles/rebuild_cache.dir
